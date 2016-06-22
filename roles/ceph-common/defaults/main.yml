@@ -36,7 +36,7 @@ upgrade_ceph_packages: False
 # is not needed for versions after infernalis.
 use_server_package_split: true
 
-# /!\ EITHER ACTIVE ceph_stable OR ceph_stable_uca OR ceph_dev OR ceph_custom /!\
+# /!\ EITHER ACTIVE ceph_stable OR ceph_stable_ice OR ceph_stable_uca OR ceph_dev OR ceph_custom /!\
 
 debian_package_dependencies:
   - python-pycurl
