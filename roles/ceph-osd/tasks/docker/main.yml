@@ -54,3 +54,15 @@
   when: ansible_os_family == 'RedHat'
 
 - include: start_docker_osd.yml
+
+  #TODO Move this to its own play
+  #- name: install firewall python2 bindings
+  #dnf:
+  #        name: python-firewall
+
+  #- name: Open OSD Ports
+  #firewalld:
+  #        zone: public
+  #        port: 6800-7100/tcp
+  #        permanent: true
+  #        state: enabled 

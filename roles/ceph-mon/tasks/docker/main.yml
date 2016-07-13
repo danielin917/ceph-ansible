@@ -45,6 +45,8 @@
 
 - include: dirs_permissions.yml
 
+- debug:
+        msg: "invetnory_hostname={{ inventory_hostname }} first_mon={{ groups.mons[0] }} kv: mon_containerized_default_ceph_conf_with_kv"
 # let the first mon create configs and keyrings
 - include: create_configs.yml
   when:
@@ -73,3 +75,15 @@
     - groups[restapi_group_name] is defined
     - inventory_hostname == groups.mons|last
     - not mon_containerized_deployment_with_kv
+ #TODO Move this to its own play
+ #- name: install firewall python2 bindings
+ # dnf:
+ #        name: python-firewall
+             
+  #- name: Open Monitor Port
+  #firewalld:
+  #        zone: public
+  #        port: 6789/tcp
+  #        permanent: true      
+  #        state: enabled 
+

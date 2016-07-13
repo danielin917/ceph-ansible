@@ -7,6 +7,7 @@ VAGRANTFILE_API_VERSION = '2'
 config_file=File.expand_path(File.join(File.dirname(__FILE__), 'vagrant_variables.yml'))
 settings=YAML.load_file(config_file)
 
+
 NMONS          = settings['mon_vms']
 NOSDS          = settings['osd_vms']
 NMDSS          = settings['mds_vms']
@@ -23,11 +24,13 @@ MEMORY         = settings['memory']
 STORAGECTL     = settings['vagrant_storagectl']
 ETH            = settings['eth']
 DOCKER         = settings['docker']
+VERBOSE    = settings['verbose']
+
 
 if BOX == 'openstack'
   require 'vagrant-openstack-provider'
-  OSVM = true
   USER = settings['os_ssh_username']
+  OSVM = true  
   OSUSER = settings['os_username']
   OSPREFIX = "#{OSUSER}-"
 else
@@ -36,12 +39,16 @@ else
 end
 
 ansible_provision = proc do |ansible|
+  if VERBOSE then
+    ansible.verbose = "vvv"
+  end
+
   if DOCKER then
     ansible.playbook = 'site-docker.yml'
     if settings['skip_tags']
       ansible.skip_tags = settings['skip_tags']
     end
-  else
+  else 
     ansible.playbook = 'site.yml'
   end
 
@@ -70,10 +77,10 @@ ansible_provision = proc do |ansible|
       osd_containerized_deployment: 'true',
       mds_containerized_deployment: 'true',
       rgw_containerized_deployment: 'true',
-      nfs_containerized_deployment: 'true',
       restapi_containerized_deployment: 'true',
       rbd_mirror_containerized_deployment: 'true',
       ceph_mon_docker_interface: ETH,
+      monitor_interface: ETH,
       ceph_mon_docker_subnet: "#{SUBNET}.0/24",
       ceph_osd_docker_extra_env: "CEPH_DAEMON=OSD_CEPH_DISK,OSD_JOURNAL_SIZE=100",
       cluster_network: "#{SUBNET}.0/24",
@@ -107,15 +114,17 @@ def create_vmdk(name, size)
 end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box_url = BOX_URL 
   config.vm.box = BOX
-  config.vm.box_url = BOX_URL
   config.ssh.insert_key = false # workaround for https://github.com/mitchellh/vagrant/issues/5048
-
+  config.vm.synced_folder ".", "/vagrant", disabled: true 
+ 
+  
   # Faster bootup.  Disable if you need this for libvirt
   config.vm.provider :libvirt do |v,override|
     override.vm.synced_folder '.', SYNC_DIR, disabled: true
   end
-
+ 
   if BOX == 'openstack'
     # OpenStack VMs
     config.vm.provider :openstack do |os|
@@ -190,36 +199,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Parallels
       rgw.vm.provider "parallels" do |prl|
         prl.name = "ceph-rgw#{i}"
-        prl.memory = "#{MEMORY}"
-      end
-    end
-  end
-
-  (0..NNFSS - 1).each do |i|
-    config.vm.define "nfs#{i}" do |nfs|
-      nfs.vm.hostname = "ceph-nfs#{i}"
-      if !OSVM
-        nfs.vm.network :private_network, ip: "#{SUBNET}.6#{i}"
-      end
-
-      # Virtualbox
-      nfs.vm.provider :virtualbox do |vb|
-        vb.customize ['modifyvm', :id, '--memory', "#{MEMORY}"]
-      end
-
-      # VMware
-      nfs.vm.provider :vmware_fusion do |v|
-        v.vmx['memsize'] = "#{MEMORY}"
-      end
-
-      # Libvirt
-      nfs.vm.provider :libvirt do |lv|
-        lv.memory = MEMORY
-      end
-
-      # Parallels
-      nfs.vm.provider "parallels" do |prl|
-        prl.name = "ceph-nfs#{i}"
         prl.memory = "#{MEMORY}"
       end
     end
