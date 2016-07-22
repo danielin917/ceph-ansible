@@ -22,4 +22,11 @@
   with_together:
     - ceph_config_keys
     - statleftover.results
-  when: item.1.stat.exists == true
+  when: 
+    - item.1.stat.exists == true
+    - not clean_check == true
+
+- name: set as checked #set on a per host basis so should stay unset on other hosts
+  set_fact:
+    clean_check: true
+

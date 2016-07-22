@@ -1,6 +1,6 @@
 ---
 - name: create docker network                                    
-  command: "docker network create --driver bridge --subnet {{cluster_network}} ceph-{{fsid}}" 
+  command: "docker network create --driver bridge --subnet {{cluster_network}} ceph-{{ cluster }}" 
 
 - debug: 
         msg: "{{cluster_network}}--->{{cluster_network | ipaddr('net') | ipaddr('2') | ipaddr('address')}}"
