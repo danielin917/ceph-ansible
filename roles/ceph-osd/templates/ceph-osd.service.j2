@@ -19,6 +19,7 @@ ExecStart=/usr/bin/docker run --rm --net=ceph-{{ cluster }} --pid=host\
    -v /dev:/dev \
    --privileged \
    -e CEPH_DAEMON=OSD_CEPH_DISK_ACTIVATE \
+   -e CLUSTER={{ cluster }}\
    -e OSD_DEVICE=/dev/%i \
    --name={{ cluster }}-osd-dev%i \
    {{ ceph_osd_docker_username }}/{{ ceph_osd_docker_imagename }}:{{ ceph_osd_docker_image_tag }}

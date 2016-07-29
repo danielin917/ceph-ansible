@@ -2,13 +2,7 @@
 - name: create docker network                                    
   command: "docker network create --driver bridge --subnet {{cluster_network}} ceph-{{ cluster }}" 
 
-- debug: 
-        msg: "{{cluster_network}}--->{{cluster_network | ipaddr('net') | ipaddr('2') | ipaddr('address')}}"
-
 - name: set monitor address
-  set_fact:
+  set_fact: #monitor takes on the 2nd indexed address in the cluster network
           monitor_address: "{{cluster_network | ipaddr('net') | ipaddr('2') | ipaddr('address')}}"
-  #- name: extract container network
-
-  #- name: retrieve mon ip address  
 

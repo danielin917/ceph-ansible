@@ -4,10 +4,14 @@
     ceph_config_keys:
       - /etc/ceph/{{ cluster }}.client.admin.keyring
       - /etc/ceph/{{ cluster }}.conf
+      - /etc/ceph/monmap-{{ cluster }}
       - /etc/ceph/{{ cluster }}.mon.keyring
+      - /etc/ganesha/ganesha.conf
       - /var/lib/ceph/bootstrap-osd/{{ cluster }}.keyring
       - /var/lib/ceph/bootstrap-rgw/{{ cluster }}.keyring
       - /var/lib/ceph/bootstrap-mds/{{ cluster }}.keyring
+     
+     
 
 - name: stat for ceph config and keys
   stat:
@@ -17,17 +21,21 @@
   failed_when: false
   register: statleftover
 
+- name: get host checked value  #set on a per host basis so should stay unset on other hosts
+  set_fact:
+    checked: "{{ hostvars[inventory_hostname]['checked'] | default(false) }}"
+
 - name: fail if we find existing cluster files
   fail:
-    msg: "looks like no cluster is running but ceph files are present, please remove them"
+    msg: "looks like no cluster is running but ceph files are present, please remove them" 
   with_together:
     - ceph_config_keys
     - statleftover.results
   when: 
     - item.1.stat.exists == true
-    - not clean_check == true
+    - checked == false
 
 - name: set as checked #set on a per host basis so should stay unset on other hosts
   set_fact:
-    clean_check: true
+    checked: true
 
